@@ -87,7 +87,7 @@ public class ExchangeLoggingFilter implements GlobalFilter, Ordered {
 
 	@Override
 	public int getOrder() {
-		return Integer.MIN_VALUE;
+		return Integer.MAX_VALUE;
 	}
 
 	private void logRequest(ServerHttpRequest request, String body) {
