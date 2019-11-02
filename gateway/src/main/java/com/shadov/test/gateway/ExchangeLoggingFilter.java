@@ -27,7 +27,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-@Service
+//@Service
 public class ExchangeLoggingFilter implements GlobalFilter, Ordered {
 	private static final String MAGIC_HEADER = "x-debug";
 	private static final Logger LOGGER = LoggerFactory.getLogger(ExchangeLoggingFilter.class);
@@ -80,8 +80,21 @@ public class ExchangeLoggingFilter implements GlobalFilter, Ordered {
 
 		return requestBody
 				.flatMap(body -> {
-					logRequest(request, body);
-					return chain.filter(exchange.mutate().response(logResponse(exchange)).build());
+					try {
+						logRequest(request, body);
+					} catch (Exception ex) {
+						LOGGER.error("Exception during logging request body", ex);
+					}
+
+					ServerWebExchange exch = exchange;
+					try {
+						ServerHttpResponseDecorator logResponse = logResponse(exchange);
+						exch = exchange.mutate().response(logResponse).build();
+					} catch (Exception ex) {
+						LOGGER.error("Failed during response logging", ex);
+					}
+
+					return chain.filter(exch);
 				});
 	}
 
