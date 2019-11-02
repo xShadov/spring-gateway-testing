@@ -2,18 +2,16 @@ package com.shadov.test.gateway;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.cloud.gateway.filter.factory.rewrite.ModifyRequestBodyGatewayFilterFactory;
 import org.springframework.cloud.gateway.filter.factory.rewrite.RewriteFunction;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.annotation.Order;
 import reactor.core.publisher.Mono;
 
 import javax.xml.namespace.QName;
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.SOAPConstants;
+import javax.xml.soap.SOAPHeader;
 import javax.xml.soap.SOAPMessage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -38,13 +36,21 @@ public class GatewayApplication {
 				.build();
 	}
 
+	/*
+		Map<String, List<String>> inHeaders = (Map<String, List<String>>) context.get(Message.PROTOCOL_HEADERS);
+		inHeaders.put("x-testing-if-header-can-be-added-from-cxf-client", Arrays.asList("yes-it-can"));
+	*/
 	private RewriteFunction<String, String> modify() {
 		return (exchange, message) -> {
+			exchange.getRequest().getHeaders().forEach((a, b) -> System.out.println(a + ":" + b));
+
 			InputStream is = new ByteArrayInputStream(message.getBytes());
 			try {
 				SOAPMessage request = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL).createMessage(null, is);
 
-				request.getSOAPHeader().addHeaderElement(new QName("wat", "otherwat", "anotherwat"));
+				SOAPHeader soapHeader = request.getSOAPHeader();
+				if (soapHeader != null)
+					soapHeader.addHeaderElement(new QName("wat", "otherwat", "anotherwat"));
 
 				ByteArrayOutputStream out = new ByteArrayOutputStream();
 				request.writeTo(out);

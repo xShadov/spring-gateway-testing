@@ -7,7 +7,6 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
-
 @EnableWebFluxSecurity
 public class SecurityConfig {
 
@@ -16,12 +15,13 @@ public class SecurityConfig {
 		http
 				.authorizeExchange(exchanges ->
 						exchanges
-								.anyExchange().authenticated()
+								.anyExchange().permitAll()
 				)
 				.oauth2ResourceServer(oauth2ResourceServer ->
 						oauth2ResourceServer
 								.jwt(withDefaults())
-				);
+				)
+				.csrf().disable();
 		return http.build();
 	}
 }
